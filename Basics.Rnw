@@ -1,0 +1,456 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{float}
+\usepackage[german]{fancyref}
+\usepackage{hyperref}
+
+
+
+\title{Basics}
+
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+<<setup, include=FALSE>>= 
+knit_hooks$set(inline = function(x) { 
+  if (is.numeric(x)) return(knitr:::format_sci(x, 'latex')) 
+  x = as.character(x) 
+  knitr:::hilight_source(x, 'latex', list(prompt=FALSE, size='normalsize')) 
+}) 
+@ #to highlight R-code in text in knitr-style
+
+\subsection{Grundoperationen in R}
+\label{sec:Taschenrechner}
+
+In R lassen sich Vektoren\footnote{
+Zahlen werden von R als Vektoren interpretiert, hier also Vektoren mit
+jeweils einem Element.} subtrahieren, addieren,
+multiplizieren, dividieren, potenzieren, logarithmieren und natürlich
+lassen sich auch Wurzeln ziehen.
+
+Im Folgenden sind einige einfache Rechnungen aufgeführt. 
+
+@ 
+<<basics1>>=
+3+4*5
+14-2*7
+3^3
+(3^3)^2
+sqrt(36)
+sqrt(4^2)
+log(10)
+@ %def 
+
+Wir können problemlos auch Vektoren mit mehr als einem Element
+erstellen. Man erreicht dies durch die \Sexpr{'c()'}-Funktion, wobei das
+``c'' für ``combine'' steht. Beispielsweise könnte ein Vektor so aussehen:
+@ 
+<<v1>>=
+c(1,2,3,4,5,6,7,8,9,10)
+@ %def 
+Als nächstes wollen wir einen Vektor mit den Zahlen 1:100
+erstellen. Man kann sich hierbei jedoch die Tipparbeit sparen, da es
+in R einen Sequenzoperator, den Doppelpunkt, gibt, der uns die Arbeit
+abnimmt. Der Doppelpunkt steht für "von bis".
+@ 
+<<v2,results='hide'>>=
+c(1:100)
+@ %def 
+Dass hier das Ergebnis nicht angezeigt wird sei mir
+verziehen. Überprüfen Sie es gerne selbst, Sie werden sehen, es
+funktioniert. 
+Die Taschenrechner-Funktionen von R beschränken sich nicht nur auf
+Zahlen (Vektoren mit einem Element). Genauso lassen sich auch die
+verschiedenen Rechenoperationen mit "längeren" Vektoren
+durchführen. Hier einige Beispiele um zu erkennen, wie R arbeitet:
+@ 
+<<v3>>=
+c(1,2,3)*3
+c(2,2)+c(3,4)
+c(1,2,3)+c(20,200)
+@ %def 
+Im letzten Beispiel gibt R eine Warnmeldung aus, weil die Länge des
+ersten Vektors kein Vielfaches der Länge des zweiten Vektors
+ist. Nachdem die ersten beiden Rechnungen (1+20) und (2+200)
+durchgeführt wurden, "`springt"' R wieder an den Anfang des zweiten
+Vektors um zur Zahl 3 die 20 zu addieren. Die Berechnung
+wird beendet, obwohl R noch nicht das Ende des zweiten Vektors
+erreicht hat. Es folgt eine Warnmeldung. 
+
+Der Vollständigkeit halber hier der Code ohne Warnung:
+@ 
+<<vw>>=
+c(1,2,3,4)+c(20,200)
+@ %def 
+
+
+\subsection{Variablen}
+\label{sec:Variablen}
+
+Wie in jeder anderen Programmiersprache ist auch in R die Zuweisung
+von Objekten zu Variablen möglich. Wie der
+Name schon sagt, sind die Inhalte einer Variablen veränderbar. Der
+Wert einer neuen Variable kann selbst wieder eine Variable sein. Der
+Zuweisungsoperator in R (im Engl. ``assignment operator) ist ein Pfeil
+(``<-''). 
+
+@ 
+<<vv1>>=
+x <- 1
+x
+(y <- x/2)
+(z <- y+x)
+@ %def 
+
+Im ersten Beispiel wird dem Symbol\footnote{In R wird der
+  Variablenname als ``Symbol'' bezeichnet} x der Wert ``1''
+zugewiesen. Im zweiten Beispiel wird dem Symbol ``y'' der Wert der
+Variable ``x'', dividiert durch ``2'', zugewiesen.\footnote{Hinweis:
+  die Klammern in Beispiel 1\&2 dienen sowohl dem Speichern wie dem
+  sofortigen Darstellen des Inhalts der Variable} Im dritten Beispiel
+werden die beiden Variablen ``x'' und ``y'' addiert und in die
+Variable ``z'' gespeichert. 
+
+\subsection{Datentypen}
+\label{sec:Dateitypen}
+
+Bisher haben wir gesehen, wie mit Zahlen und Vektoren gerechnet werden
+kann und wie sich Werte Variablen zuweisen lassen. Im folgenden
+Abschnitt werden weitere wichtige Objekte\footnote{Sie werden in den
+  seltensten Fällen falsch liegen, wenn Sie etwas in R als
+  "`Objekt"' bezeichnen.} vorgestellt. Außerdem wird erklärt, wie auf
+einzelne Elemente innerhalb der verschiedenen Objekte zugegriffen
+werden kann (auch als ``Indexing'' bezeichnet). 
+
+\subsubsection{Vektoren}
+\label{sec:Vektoren}
+
+Die einfachsten Objekte in R sind die Vektoren. Wir haben sie schon in
+~\fref{sec:Taschenrechner} kennengelernt. Es gibt jedoch nicht nur
+numerische Vektoren, sondern auch Vektoren, die aus Buchstaben bzw. Wörtern
+(sog. character) oder logischen
+Operatoren (TRUE/FALSE) bestehen. Sie werden durch ein \Sexpr{'c()'} erstellt. Die
+einzelnen Werte innerhalb des Vektors werden durch Kommas voneinander
+getrennt. Nachkommastellen werden in R mit einem Punkt gekennzeichnet.
+
+@ 
+<<v4>>=
+# ein Vektor mit Zahlen (numerisch)
+c(1.2,2.4,3.6,4.8,5)
+# ein Vektor mit Wörtern (character)
+c("Apfel","Birne","Banane")
+# ein Vektor mit logischen Operatoren (logical)
+c("TRUE","TRUE","FALSE","FALSE")
+# ein "gemischter" Vektor
+c(24, "Stunden")
+@ %def 
+
+
+
+
+\subsubsection{Matrizen}
+\label{sec:Matrizen}
+
+Wie Sie vermutlich schon wissen, lassen sich verschiedene Verfahren
+auch mittels matrix-algebraischer Herangehensweise lösen. Zwar ist die Berechnung per Hand
+äußerst mühsam, aus Sicht der Programmierung aber vorteilhaft. Das 
+``Allgemeine Lineare Modell'' bietet einen Bezugsrahmen, durch den
+sich die Unterschiede zwischen regressions- und varianzanalytischen 
+Ansätzen weitgehend aufheben\footnote{Im ALM ist die ANOVA
+  eine bestimmte Form der Regression}. Weil dies so ist, beschäftigen
+wir uns im folgenden mit Matrizen. Matrizen besitzen im
+Gegensatz zu Vektoren eine zwei-dimensionale Datenstruktur. Wie werden
+Matrizen erstellt? Hierfür gibt es die \Sexpr{'matrix'} Funktion. 
+Hier einige Beispiele, die den Aufbau verdeutlichen:
+
+@ 
+<<m1>>=
+matrix(1:6)
+# zwei Zeilen:
+matrix(1:6,nrow=2)
+# "by row" "wahr" machen
+matrix(1:6,nrow=2,byrow=TRUE)
+# Spalten- und Zeilennamen noch:
+matrix(1:6,nrow=2,byrow=TRUE,dimnames=list(c("A","B"),c("X","Y","Z")))
+@ %def 
+
+Im letzten Beispiel wurden den entsprechenden Zeilen und Spalten der Matrix Namen
+gegeben. Es fällt auf, dass hier eine bislang unbekannte Funktion,
+nämlich \Sexpr{'list()'}, verwendet wurde. Eine Liste ist, wie so
+vieles in R, ein Objekt. In ~\fref{sec:Listen} wird erklärt was Listen
+sind und wie diese erstellt werden. 
+
+In manchen Fällen kann es sein, dass R als Input einer bestimmten
+Funktion den Datentyp Matrix erwartet:
+
+@ 
+<<m2>>=
+# hier Code, der error message anzeigt
+@ %def 
+
+Nicht weiter schlimm - unser Objekt wird durch die Funktion
+\Sexpr{'as.matrix()'} in eine Matrix transformiert. Nun taucht auch
+keine Fehlermeldung mehr auf. 
+
+Im nächsten Abschnitt widmen wir uns einem weiteren wichtigen
+Objekttyp in R, den Faktoren. Bevor wir dies jedoch tun, wollen wir
+einen anderen Objekttyp, die arrays, nicht
+unerwähnt lassen, auch wenn Sie mit diesem Typ in den Anfängen wenig
+bis keinen Kontakt haben werden. Arrays sind mehrdimensionale Vektoren
+und lassen sie durch die \Sexpr{'array'}-Funktion erstellen. Ein
+kleines Beispiel soll hier genügen. Wir erzeugen einen "`2*2*2-array"':
+
+@ 
+<<a1>>=
+array(1:8,dim=c(2,2,2))
+@ %def 
+
+
+\subsubsection{Faktoren}
+\label{sec:Faktoren}
+
+Bei der Datenauswertung, sagen wir eines Fragebogens, finden sich
+i.d.R. eine oder mehrere diskrete/kategoriale Variablen. 
+Kategoriale Variablen liegen in Nominal- oder Ordinalskalenniveau
+vor.\footnote{Auch viele metrisch skalierte
+  Variablen haben nur endlich viele Ausprägungen (z.B. Items in einem
+  Fragebogen); sie werden aber meist
+  nicht als kategorial im engeren Sinne bezeichnet} Wir müssen diese
+Variablen in R als solche zunächst kennzeichnen (entweder als nominal
+oder ordinal), um mit ihnen
+weiterarbeiten zu können. Ein Beispiel: Wir haben von vier Personen
+eine Angabe über das Geschlecht. Die Daten liegen in Form eines
+numerischen Vektors vor. Also so:
+
+@ 
+<<f1,results='hide'>>=
+c(1,1,1,2)
+@ %def 
+
+Diesen Vektor wandeln wir nun in einen Faktor um:
+@ 
+<<f2>>=
+factor(c(1,1,1,2))
+@ %def 
+Der einzige Unterschied zwischen dem Ouput des Vektors und einem
+Faktor ist die zusätzliche Angabe der Levels. Anschaulicher wird es,
+wenn die Levels noch umbenannt werden, sodass wir sehen was sich
+hinter den beiden Zahlen "`vebirgt"'.\footnote{dem Befehl
+  \Sexpr{'labels'} entspricht die Zuweisung von Wertelabels in SPSS} 
+
+@ 
+<<f3>>=
+factor(c(1,1,1,2),labels=c("weiblich","männlich"))
+@ %def 
+
+Nun ein weiteres Beispiel um zu verdeutlichen, wie sich eine
+ordinalskalierte Variable als solche kennzeichnen lässt. Wir haben von
+vier Personen eine Angabe über die Höhe ihres Einkommens, und gehen
+von einer Dreifach-Stufung aus (hoch, mittel, niedrig). Hier die Daten:
+
+@ 
+<<f4>>=
+c(1,3,2,2)
+@ %def 
+
+Der Befehl in diesem Fall lautet \Sexpr{'ordered'}. Statt
+\Sexpr{'factor'} verwenden wir im Falle einer ordinalen Variable also
+den Befehl \Sexpr{'ordered()'}. Im Folgenden die ``Umwandlung'':
+
+@ 
+<<f5>>=
+ordered(c(1,3,2,2),labels=c("hoch","mittel","niedrig"))
+@ %def 
+
+Alternativ kann der Befehl \Sexpr{'factor()'} durch die Option
+\Sexpr{'ordered=TRUE'} ergänzt werden. Beides führt zu demselben Resultat.
+
+
+
+\subsubsection{Listen}
+\label{sec:Listen}
+
+Listen stellen eine geordnete Sammlung von Objekten dar. Listen können
+dabei unterschiedliche Objekttypen beinhalten. Es ist also z.B. möglich
+einer Liste einen numerischen Vektor, einen ``character-Vektor'' und eine
+Matrix zu übermitteln. Ein kleines Beispiel zur Veranschaulichung
+einer Liste in R:
+
+@ 
+<<l1>>=
+list(Personen=3,Altersangaben=c(23,26,19),Augenfarbe=c("grün","blau","rot"))
+@ %def 
+
+\subsubsection{Data Frames}
+\label{sec:dataframe}
+
+Data Frames sind in gewisser Weise eine Erweiterung von Matrizen. Data
+Frames enthalten wie Matrizen verschiedene Spalten und Reihen, denen
+Namen gegeben werden können. Der Unterschied ist, dass die Spalten
+eines Data Frames verschiedene Modi (numeric, character, factor) darstellen
+können. Daher eignet sich dieser Objekttyp auch sehr gut zum
+Darstellen von Datensätzen, wie man sie üblicherweise nach einer
+Erhebung vorliegen hat. Bei einer klassischen Fragebogenuntersuchung
+bekommen die Spalten die Nummern des jeweiligen Items (z.B. Item1,
+Item2 u.s.w.) und die Reihen repräsentieren die Teilnehmer (Personen,
+die den Fragebogen beantwortet haben). Theoretisch ließe sich ein
+derartiger Datensatz auch in eine Matrix
+überführen\footnote{Schließlich hätten wir in einem solchen Fall nur
+  numerische Vektoren}, doch üblicherweise wird zusätzlich zu den
+Antworten zumindest noch das Geschlecht der Probanden
+interessieren. Wie wir bereits wissen, muss R mitgeteilt werden, dass es
+sich bei der Variable ``Geschlecht'' um eine nominale Variable
+handelt. Dies erreicht man durch das faktorisieren (siehe
+~\fref{sec:Faktoren}). 
+
+@ 
+<<df1>>=
+data.frame(Geschlecht=factor(c("w","m","w")),Item1=c(3,4,1))
+@ %def 
+
+\subsection{Indexing}
+\label{sec:Indexing}
+
+In diesem Abschnitt geht es darum, wie einzelne oder mehrere Elemente
+aus den im vorherigen Kapitel beschriebenen Objekten ausgewählt werden
+können. Wir erstellen wir einen Vektor ``x'' mit den ersten fünf
+Buchstaben des Alphabets und
+greifen auf das dritte Element, sprich das ``c'' zu:
+
+@ 
+<<vi1>>=
+v <- c("A","B","C","D","E")
+v[3]
+@ %def 
+
+Der Zugriff auf ein Element erfolgt durch die Angabe des Symbols (des
+Namens der Variable) gefolgt von einer eckigen Klammer, in welcher die
+Stelle des Elements innerhalb des Vektors angegeben wird. 
+
+Mehrere Elemente können wie folgt ausgewählt werden:
+@ 
+<<vi2>>=
+v[c(2,4,5)]
+# bei aufeinanderfolgenden Elementen:
+v[3:5]
+@ %def 
+
+Weiterhin ist es nicht nur möglich, bestimmte Elemente auszuwählen,
+sondern auch, bestimmte Elemente "`auszuschließen"':
+
+@ 
+<<vi3>>=
+v[-1]
+v[-1:-3]
+v[-c(2,5)]
+@ %def 
+
+Denken Sie daran, dass sich die so ausgewählten Elemente ohne weiteres
+in neue Variablen abspeichern ließen. Alternativ wäre es natürlich
+auch möglich die Variable, aus welcher die Elemente ausgewählt werden,
+selbst zu verändern. Etwa so:
+
+@ 
+<<vi4>>=
+(v <- v[c(1,5)])
+@ %def 
+
+Nachdem wir wissen, wie Elemente aus Vektoren extrahiert werden,
+wollen wir jetzt zeigen, wie auf Elemente aus Matrizen
+zugegriffen werden kann. Zur Erinnerung, eine Matrix sieht z.B. so aus:
+
+@ 
+<<mi1>>=
+(m <- matrix(101:108,nrow=2))
+@ %def 
+
+Zugriff auf Element 3:
+@ 
+<<mi2>>=
+m[3]
+@ %def 
+Zugriff auf Element 7:
+@ 
+<<mi3>>=
+m[7]
+@ %def 
+Zugriff auf Element 3 bis 7:
+@ 
+<<mi4>>=
+m[3:7]
+@ %def 
+Zugriff auf den zweiten Wert in Spalte 3:
+@ 
+<<mi5>>=
+m[2,3]
+@ %def 
+Hier wird ersichtlich, dass die erste Angabe in der eckigen Klammer
+die Reihe bzw. Zeile betrifft, und die zweite Angabe (von der ersten
+durch ein Komma getrennt), die Spalte. Wie aber eine ganze Spalte
+oder eine ganze Reihe auswählen? Ganz einfach - hier der Beweis:
+@ 
+<<mi6>>=
+m[2,]
+m[,3]
+@ %def 
+
+Was meinen Sie, wie lassen sich die Spalten 1,2 und 4 aus der Matrix
+"`m"' auswählen?
+
+Vektoren, Matrizen, jetzt fehlen uns noch Listen und Data
+Frames\footnote{und wie ist es bei Faktoren? - Der Zugriff ist
+  äquivalent zu dem der Vektoren}. Weiter geht es mit Listen. 
+
+@ 
+<<li1>>=
+(l <- list(Zahl=5,Vektor=c(1,2,3),String="Das ist ein String"))
+@ %def 
+
+Sie werden gleich sehen, dass es viele Parallelen zu dem Zugriff auf
+Elemente in Vektoren und Matrizen gibt. Allerdings auch einige kleine
+"`Neuheiten"'. Jedes Element der Liste besitzt einen Namen (hier:
+Zahl, Vektor und String). Wir können auf einzelne Elemente durch
+Angabe der Liste und des Namens, getrennt durch ein \$-Zeichen, 
+zugreifen. Im Folgenden auf das Element mit dem
+Namen "`Vektor"', also den Vektor \Sexpr{'c(1,2,3)'}:
+
+@ 
+<<li2>>=
+l$Vektor
+@ %def 
+
+Alternativ können dasselbe durch eine doppelte eckige Klammer erreichen:
+@ 
+<<li3>>=
+l[[2]]
+@ %def
+
+Zugriff auf "`Zahl"' und "`String"':
+@ 
+<<li4>>=
+l[c("Zahl","String")]
+@ %def 
+Zugriff auf Element 2 des Elements 2 (auf die Zahl "`2"' aus dem
+Element "`Vektor"'):
+
+@ 
+<<li5>>=
+l$Vektor[2]
+# oder so:
+l[[c(2,2)]]
+@ %def 
+
+Zuletzt noch etwas zu Data Frames. Die Zugriffsoptionen unterscheiden
+sich nicht wesentlich von denen der Matrizen. Lediglich lassen sich
+bei Data Frames einzelne Spalten (wie bei den Listen) durch das \$-Zeichen
+und den Namen der jeweiligen Spalte aufrufen. Ansonsten funktioniert
+der Zugriff identisch. 
+
+\end{document}
