@@ -1,4 +1,4 @@
-1. The R-Code in Latex should be presented in the same way as in the Rnw (with linebreaks).
+1. The R-Code in Latex (pdf) should be presented in the same way as in the Rnw (with linebreaks).
 
 2. Why is the highlighted inline code shown in a separate new line?
 
