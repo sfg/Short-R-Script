@@ -1,0 +1,405 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{float}
+\usepackage[german]{fancyref}
+\usepackage{hyperref}
+
+
+
+
+
+\title{Graphics}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+
+
+<<lattice,echo=FALSE>>=
+library(lattice)
+opts_chunk$set(fig.width=5, fig.height=4) 
+@ %def 
+
+\subsection{Graphics}
+\label{sec:graphics}
+
+Wie bereits erwähnt, ist \textbf{R} ein mächtiges und flexibles
+Datenvisualisierungstool. Es bleiben praktisch keine Wünsche offen was
+die Vielfalt und Darstellung von Diagrammen angeht. Von Titeln,
+Achsenbeschriftungen, Legenden und verschiedenen Farben über die
+Darstellung komplexer Variablenzusammenhänge in Abhängigkeit
+verschiedener Kategorien eines oder mehrerer Faktoren lässt sich alles
+nach individuellen Vorstellungen anpassen. Neben den grundlegenden
+Graphik-Funktionen in \textbf{R} (\textit{base graphics}, die standardmäßig in
+\textbf{R} implementiert sind und mit denen schon ein breites Spektrum an
+Visualisierungsmöglichkeiten geboten wird, gibt es noch zwei weitere,
+weitverbreitete Graphik-Packages,
+\href{http://cran.r-project.org/web/packages/lattice/index.html}{\textbf{Lattice}}
+und \href{http://had.co.nz/ggplot2/}{\textbf{gglot2}}. Während \textbf{Lattice} direkt nach der
+Installation von \textbf{R} als Paket zur Verfügung steht, muss
+\textbf{ggplot2} zusätzlich 
+installiert werden \footnote{Abschnitt ? gibt einen kurzen Einblick in
+  das Arbeiten mit ggplot2}. Im Folgenden beziehen wir uns auf,
+da es sich insbesondere für die Darstellung multivariater Daten
+eignet.
+
+Dieser Abschnitt soll Ihnen zeigen, wie Sie mit \textbf{Lattice} gängige
+Diagramme erzeugen können. Der Fokus liegt auf Histogrammen,
+Balkendiagrammen, Boxplots und Streudiagrammen. 
+
+
+\subsection{Lattice}
+\label{sec:lattice}
+
+Hier sollten ein paar Sätze über den Umgang/Aufbau mit/von \textbf{Lattice}
+stehen. Wie werden Beziehungen zwischen Variablen gekennzeichnet,
+vielleich ein bisschen was über die Entstehungshintergründe (trellis) etc.
+
+\subsubsection{Histogramme}
+\label{sec:histogramm}
+
+Histogramme bilden absolute oder relative Häufigkeiten bestimmter
+Bereiche (``künstlicher Kategorien'') einer intervall-oder
+verhältnisskalierten Variable (metrischen Variable) ab. Der Befehl für
+ein Histogramm in lattice lautet simple und einfach
+\texttt{histogram} (ich gehe intuitiv davon aus, dass Sie sich diesen Befehl
+vergleichsweise gut merken merken können). Das könnte dann in etwa wie
+folgt aussehen:
+
+\begin{figure}[H]
+  \centering
+<<hist1>>=
+histogram(~age,pro)
+@ %def 
+\caption{Histogramm I}
+  \label{fig:hist1}
+\end{figure}
+
+
+Zuerst wird die Variable angegeben, die geplottet werden
+soll (hier \textit{age}). Dahinter folgt dann der Name des Datensatzes
+(hier \textit{pro}). 
+
+~\ref{fig:hist1} gibt uns einen ersten
+Überblick über das Alter der Teilnehmer. Sie sehen, dass ein sehr
+großer Anteil um die 20 Jahre alt ist und nur ein verschwindend
+geringer Teil älter als 30 Jahre ist. 
+
+Nunja, was sagen Sie zu diesem Histogramm? Sind wir ehrlich, es sieht
+weder hübsch aus, noch bietet es detaillierte Informationen. Ich zeige
+Ihnen im Folgenden, wie sich das Histogramm ein bisschen
+``aufpäppen'' lässt. Wir vergeben dem Histogramm einen Titel  durch die
+Funktion \texttt{main} und benennen die Achsen um (\texttt{xlab} und
+\texttt{ylab}). Weiterhin wären mehr Kategorien sinnvoll, um genauere
+Informationen über die Verteilung zu bekommen (\texttt{nint} hilft
+uns hierbei weiter). Dieses Mehr an Kategorien erfordert genauere
+Achsenangaben, die mittels \texttt{scales} erzeugt werden
+können. Last but not least ändern wir noch die Farbe durch
+\texttt{col}\footnote{Bekanntlich lässt sich über Geschmack
+  streiten, aber ich denke in diesem Fall stimmen Sie mir zu}. 
+
+\begin{figure}[H]
+  \centering
+<<hist2,tidy=FALSE>>=
+histogram(~age,pro,
+          main = "Ein schöne(re)s Histogramm",
+          xlab = "Alter",
+          ylab = "Prozent",
+          nint = 20,
+          scales=list(
+            x=list(at=seq(min(pro$age),max(pro$age),2))),
+          col = "cornflowerblue")
+
+@ %def 
+\caption{Histogramm II}
+  \label{fig:hist2}
+\end{figure}
+
+Das sieht doch jetzt schon viel anschaulicher aus. Die einzelnen
+Optionen sollten ohne weiteres verständlich sein. Wie Sie erkennen, ist
+der Input der Funktion \texttt{scales} eine Liste, in welcher
+wiederum eine Liste für die x- bzw. die y-Achse aufgerufen
+wird. Innerhalb der zweiten Liste folgt dem ``at'' ein Vektor der
+durch die Funktion \texttt{seq} (für sequence) erstellt wurde. 
+\texttt{seq} benötigt drei Werte, die jeweils durch Kommata
+voneinander getrennt sind: den Anfangswert (das Minimum der
+Variable Alter), den Schlusswert (entsprechend das Maximum) und
+zuletzt noch die Größe der Schritte (in 2-er Schritten). Genauere
+Informationen finden Sie, indem Sie \texttt{?seq} in die Konsole eingeben.
+
+Anfangs wurde erwähnt, dass sich \textbf{Lattice} (im Vergleich zu den
+Basis-Funktionen) besonders gut für multivariate Daten eignet und sich
+Variablenzusammenhänge recht einfach veranschaulichen lassen. Um Ihnen
+diese Stärke zu verdeutlichen wird im Folgenden ein weiteres
+Histogramm erstellt, welches die Verteilung des Alters, getrennt nach
+dem Geschlecht der Teilnehmer, darstellt. Die Variable Geschlecht muss
+vom Typ \textit{factor} sein. Diese sogenannte \textit{conditioning
+  variable} bildet die Untergruppen, die dann in verschiedenen Panels
+angezeigt werden.
+
+\begin{figure}[H]
+  \centering
+<<hist3>>=
+histogram(~age | sex,pro)
+@ %def   
+\caption{Histogramm III}
+    \label{fig:hist3}
+\end{figure}
+
+
+
+Sie kennen nun schon einige wichtige Optionen zur Bearbeitung von
+Histogrammen mittels \textbf{Lattice}. Natürlich gibt es noch zahlreiche andere
+Bearbeitungsmöglichkeiten, auf die an dieser Stelle aber nicht weiter
+eingegangen wird. Im nächsten Abschnitt lernen Sie, wie sich
+Balkendiagramme in \textbf{R} erstellen und bearbeiten lassen. Sie werden
+sehen, dass es viele Parallelen hinsichtlich der Bearbeitungsoptionen
+gibt. 
+
+
+\subsubsection{Balkendiagramme}
+\label{sec:balkendiagramme}
+
+Während Histogramme der Darstellung von Häufigkeitsverteilungen metrisch
+skalierter Variablen dienen, lassen sich Häufigkeitsverteilungen eines
+nominalen Merkmals durch Balkendiagramme veranschaulichen. Die Höhe
+der Balken gibt die absolute bzw. relative Häufigkeit an. Weil es sich
+bei nominal-skalierten Variablen um natürliche Kategorien handelt, berühren
+sich die einzelnen Balken (im Gegensatz zum Histogramm)
+nicht. Balkendiagramme werden durch die Funktion \texttt{barchart}
+erstellt. Wir wollen auch hier zunächst ein einfaches Balkendiagramm
+ohne weitere Optionen generieren.
+
+\begin{figure}[H]
+  \centering
+<<barchart1>>=
+barchart(xtabs(~grad,pro))
+@ %def 
+\caption{Balkendiagramm I}
+\label{fig:barchart1}
+\end{figure}
+
+In ~\fref{fig:barchart1} sind auf der Abszisse die
+Häufigkeitsverteilungen der einzelnen
+angestrebten Studienabschlüsse abgetragen. Erwartungsgemäß zeigt sich,
+dass die meisten Teilnehmer entweder einen Bachelor- oder
+Masterabschluss anstreben. 
+
+Wichtig ist, dass die zu plottenden Daten in tabellarischer Form (vom
+Typ \textit{table}) an \texttt{barchart} übergeben werden
+müssen. Dies geschieht durch die Funktion \texttt{xtabs}.
+
+In ~\fref{fig:barchart2} wurde die Variable Geschlecht
+integriert. Standardmäßig erstellt \textbf{Lattice} ein gestapeltes Balkendiagramm.
+Mithilfe der Funktion \texttt{xtabs} können Häufigkeitstabellen
+mehrerer Variablen generiert werden, indem diese durch ein "`+"'
+angehängt werden. Damit eine Legende angezeigt wird, anhand derer die
+Farben dem Geschlecht zugeordnet werden können, setzen wir
+\texttt{auto.key} auf \texttt{TRUE}. 
+
+\begin{figure}[H]
+  \centering
+<<barchart2,tidy=FALSE>>=
+barchart(xtabs(~grad + sex, pro),
+         auto.key=TRUE)
+@ %def 
+\caption{Balkendiagramm II}
+\label{fig:barchart2}
+\end{figure}
+
+Schön wäre es jetzt noch, wenn die Balken:
+\begin{itemize}
+\item sich nicht überlagern
+\item nicht horizontal, sondern vertikal angeordnet sind
+\item nach den Kategorien der Variable \textit{sex} jeweils in einem
+  eigenen Panel angezeigt werden
+\end{itemize}
+
+Entsprechend dieser Reihenfolge gewährleisten dies die Optionen
+\texttt{stack}, \texttt{horizontal} und \texttt{groups}. Allen sind
+logische Operatoren in der Default-Funktion zugewiesen, die
+entsprechend verändert werden müssen. Der Gesamt-Befehl lautet wie
+folgt:\footnote{\texttt{auto.key} wird überflüssig, da zwei Panels
+  angezeigt werden}
+
+\begin{figure}[H]
+  \centering
+<<barchart3,tidy=FALSE>>=
+barchart(xtabs(~grad + sex, pro),
+         stack = FALSE,
+         horizontal = FALSE,
+         groups = FALSE)
+
+@ %def 
+\caption{Balkendiagramm III}
+  \label{fig:barchart3}
+\end{figure}
+
+Natürlich können, genau wie bei Histogrammen, die Farben der Balken
+beliebig verändert werden. Versuchen Sie bitte ~\fref{fig:barchart2}
+mit zwei neuen Farben Ihrer Wahl zu plotten. Fällt Ihnen etwas auf? Sie
+sehen, dass sich die Farben der Legende nicht automatisch den beiden
+Farben angepasst haben. Natürlich lässt sich das "`Problem"' lösen,
+schließĺich arbeiten wir mit \textbf{R}. Die Legende lässt sich über die
+Funktion \texttt{key} (alternativ: \texttt{simpleKey} Ihren Wünschen
+anpassen.
+
+
+\subsubsection{Boxplots}
+\label{sec:boxplots}
+
+Anhand eines Boxplots kann sowohl die Verteilung einer Variable, als auch
+deren zentrale Tendenz veranschaulicht werden. Wie der Name sagt, sind
+Boxplots durch eine Box gekennzeichnet. Diese Box beinhaltet die
+mittleren 50\% der Verteilung. Das untere Ende der Box repräsentiert das 1. Quartil,
+unterhalb dessen 25\% der Werte liegen, das obere Ende der Box
+repräsentiert das 3.Quartil, oberhalb dessen 25\% der Werte
+liegen. Innerhalb der Box ist außerdem der Median der Variable, entweder durch
+einen Strich, der die Box in zwei Hälften teilt, oder durch einen
+Punkt, gekennzeichnet. Der Definition entsprechend ``teilt'' der
+Median die Stichprobe in zwei gleich große Hälften, sodass also
+unterhalb wie auch oberhalb des Medians jeweils 50\% der Werte
+liegen. Ein weiteres Kennzeichen eines Boxplots sind die sogenannten
+Whisker. Die Länge des oberen Whiskers wird berechnet, indem zum
+Interquartilbereich (Länge der Box bzw. Differenz zwischen erstem und
+drittem Quartil) 1,5 multipliziert und anschließend jener größte Werte gesucht
+wird, welcher kleiner oder gleich dieser berechneten Grenze ist. Für
+den unteren Whisker wird äquivalent vorgegangen. Werte, die außerhalb
+dieser Whisker-Grenzen liegen werden aus Ausreißer (\textit{outlier})
+bezeichnet und im Boxplot durch einen Punkt dargestellt. 
+
+Nun zurück zu \textbf{R} und \textbf{Lattice}. In \textbf{Lattice}
+sind  Boxplots durch die
+Funktion \texttt{bwplot} implementiert. 
+
+Diesmal wollen wir das
+allgemeine Aufschiebeverhalten der Studenten betrachten. Die Variable
+\textit{total} enthält den Durchschnitt aller Items, nachdem die
+negativ gepolten Items umkodiert wurden (siehe ~\fref{sec:}).
+
+\begin{figure}[H]
+  \centering
+<<bwplot1,tidy=FALSE>>=
+bwplot(~total,
+       pro,
+       xlab="durchschnittliches Aufschiebeverhalten",
+       scales = list(
+         x = list(at = seq(0,6,1)))) # Werte 1-6 sollen angezeigt werden??
+@ 
+
+  \caption{Boxplot I}
+  \label{fig:boxplot1}
+\end{figure}
+
+Im nächsten Schritt interessiert uns, ob sich Bachelorstudenten von 
+Masterstudenten (augenscheinlich) hinsichtlich des
+Aufschiebeverhaltens unterscheiden.  Hierzu bilden wir eine
+Untergruppe des Datensatzes mithilfe von \texttt{subset}, in der nur
+solche Personen enthalten sind, die entweder einen Bachelor-oder einen
+Masterabschluss anstreben. Außerdem wird der Punkt, als Kennzeichen des
+Medians, durch einen klassischen Strich ersetzt
+(\texttt{pch}). Zuletzt wird über \texttt{par.settings} die Farbe des
+Rechtecks (\textit{rectangle}) und die der Whisker (\textit{umbrella})
+geändert, sowie beide Boxplots zur besseren Übersichtlichkeit mit
+Farben gefüllt (\texttt{fill}). 
+
+\begin{figure}[H]
+  \centering
+
+<<bwplot2,tidy=FALSE>>=
+bwplot(total ~ grad,
+       pro,
+       subset=grad %in% c("BA","MA"),
+       pch="|",
+       fill=c("lightyellow","lightblue"),
+       par.settings = list(
+         box.rectangle = list(col = "black"),
+         box.umbrella = list(col = "black")))
+@ %def 
+
+  \caption{Boxplot II}
+  \label{fig:boxplot2}
+\end{figure}
+
+
+~\fref{fig:boxplot2} zeigt, dass die Prokrastinationswerte der
+Masterstudenten weniger streuen und diese etwas weniger
+prokrastinieren als jene Studenten, die einen Bachelorabschluss
+anstreben. Weiterhin sind in beiden Gruppen keine
+Ausreißer (\textit{outlier}) zu verzeichnen.
+
+
+
+\subsubsection{Streudiagramme}
+\label{sec:xyplots}
+
+Streudiagramme (\textit{Scatterplots}) veranschaulichen mögliche
+Zusammenhänge (Kovarianzen) zwischen zwei metrischen Variablen (siehe
+Abschnitt ~fref{sec:}). Der Datensatz enthält die Variablen
+\textit{hzb} und \textit{total}, also die Abiturnote und den
+Gesamtwert der Prokrastination, die womöglich miteinander in
+Zusammenhang stehen. Wir überprüfen die Vermutung, indem wir ein
+Streudiagramm durch \texttt{xyplot} erstellen. \texttt{pch}
+(\textit{plot character}) bietet die Möglichkeit andere Symbole
+wie beispielsweise Kreuze oder Kristalle (statt der üblichen Punkte)
+zu wählen (hier eine \href{http://voteview.com/symbols_pch.htm}{Übersicht}).
+
+\begin{figure}[H]
+  \centering
+<<xyplot1,tidy=FALSE>>=
+xyplot(hzb ~ total,
+       pro,
+       pch=16)
+@ %def   
+  \caption{Streudiagramm I}
+  \label{fig:xyplot1}
+\end{figure}
+
+Scheinbar gibt es kein positiven oder negativen Zusammenhang der
+beiden Variablen. Eventuell besteht jedoch ein geschlechtsspezifischer
+Zusammenhang zwischen der HZB-Note und Prokrastination. Wir gehen der
+Idee in ~\fref{fig:xyplot2} nach. 
+
+\begin{figure}[H]
+  \centering
+<<xyplot2,tidy=FALSE>>=
+xyplot(hzb ~ total | sex,
+       pro,
+       pch=16,
+       col="black")
+@ %def   
+  \caption{Streudiagramm II}
+  \label{fig:xyplot2}
+\end{figure}
+
+Über die Option \texttt{groups} lassen sich die beiden Panels aus
+~\fref{fig:xyplot2} auch in eines überführen (siehe
+~\fref{fig:xyplot3}). Zur Auseinanderhaltung beider Geschlechter im
+Scatterplot fügen wir zusätzlich wieder eine Legende mittels
+\texttt{auto.key} ein.
+
+\begin{figure}[H]
+  \centering
+<<xyplot3,tidy=FALSE>>=
+xyplot(hzb ~ total,
+       pro,
+       groups = sex,
+       auto.key = TRUE)
+@ %def   
+  \caption{Streudiagramm III}
+  \label{fig:xyplot3}
+\end{figure}
+
+
+
+
+
+
+\end{document}
