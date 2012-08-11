@@ -1,0 +1,457 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{float}
+\usepackage[german]{fancyref}
+\usepackage{hyperref}
+
+
+
+
+
+\title{Grundlagen Inferenzstatistik}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+
+
+<<lattice,echo=FALSE>>=
+library(lattice)
+library(gmodels)
+opts_chunk$set(fig.width=5, fig.height=4,tidy=FALSE) 
+@ 
+
+\subsection{Grundlagen Inferenzstatistik}
+\label{sec:inferenz}
+
+In diesem Teil des Skripts wird zunächst das Prinzip bzw. die
+Logik des Signifikanztestens erläutert, woraufhin im Anschluss
+grundlegende inferenzstatistische Verfahren vorgestellt werden. 
+
+\subsubsection{1-Stichproben z-test}
+\label{sec:logik}
+
+Der z-test überprüft, ob eine Stichprobe aus einer Population mit
+bekanntem Populationsstandardabweichung $\sigma$ (\textit{sigma})
+stammt.  Unter dieser 
+Voraussetzung kann der Stichprobenmittelwert, ausgehend vom
+Standardfehler, z-transformiert werden, und dessen
+Auftretenswahrscheinlichkeit auf Basis der Standardnormalverteilung
+(z-Tabelle) ermittelt werden. Bei zweiseitiger Prüfung muss der
+empirische z-Wert größer als ein Wert von \Sexpr{qnorm(0.975)}
+sein\footnote{aufgrund des zweiseitigen Testens und der Symmetrie der
+  SNV führt ein Wert kleiner als \Sexpr{-qnorm(0.975)} zu demselben Ergebnis},
+denn jener kritische z-Wert schneidet genau 2,5\% der Fläche unter der
+Standardnormalverteilung ab. In \textbf{R} gibt es keine Funktion zur
+Berechnung des z-tests, daher schreiben wir nun die erste kleine
+eigene Funktion, die dieses Problem löst. Die Formel zur Berechnung
+des z-Wertes lautet:
+\begin{equation}
+ \label{eq:z}
+  z=\frac{\bar{x}-\mu_0}{\frac{\sigma}{\sqrt{n}}}
+\end{equation}
+
+Im Zähler wird die Differenz zwischen Stichprobenmittelwert und
+Populationsmittelwert $\mu$ (\textit{Mu}) gebildet und am
+Standardfehler\footnote{der Standardfehler ist die Standardabweichung
+  von Stichproben der Größe n} schließlich standardisiert. Der
+berechnete z-Wert gibt also an, wie viele Standardabweichungen der
+gefundene Stichprobenmittelwert von $\mu$ entfernt liegt. An dieser
+Stelle wird etwas wichtiges deutlich: Wir errechnen die
+Wahrscheinlichkeit des Auftretens eines Ergebnisses, und zwar
+unter der Voraussetzung der Gültigkeit der Nullhypothese,
+also der Hypothese, dass die Stichprobe aus eben jener Population
+stammt. Die Konvention besagt, eine Nullhypothese dann zu verwerfen,
+wenn die Wahrscheinlichkeit für das Vorfinden eines bestimmten
+Ergebnisses kleiner als ein $\alpha$-Fehler von 5\% ist. Über die
+Gültigkeit der Alternativhypothese lässt sich keine Aussage
+treffen. Weder lässt sich etwas über die Wahrscheinlichkeit der
+Gültigkeit/Richtigkeit der Nullhypothese, noch der Alternativhypothese
+aussagen. Es wird lediglich möglich die Wahrscheinlichkeit
+der erhobenen Daten, unter Voraussetzung der Gültigkeit der
+Nullhypothese, zu ermitteln.
+
+Alle Werte, die benötigt werden, sind nun bekannt. Die Funktion zur
+Berechnung des z-Wertes lautet:
+
+
+<<functionz>>=
+z.test <- function(x,mu,sigma) {
+  z <- (mean(x) - mu) / (sigma / length(x))
+   return(z)
+}
+@ %def 
+
+Wie Sie sehen, benötigt die Funktion namens \texttt{z.test} drei
+Angaben. Zuerst die Daten der Stichprobe (\texttt{x}), aus denen der
+Mittelwert gebildet wird,
+weiterhin die Angabe von $\mu$ und zuletzt noch $\sigma$. Innerhalb
+der Funktion ist ~\fref{eq:z} umgesetzt. Die Größe der Stichprobe n
+entspricht der Länge des Datenvektors, daher \texttt{length(x)}.
+
+\subsubsection{t-Test bei unabhängigen Stichproben}
+\label{sec:ttest}
+
+Neben dem 1-Stichproben z-test und dem 1-Stichproben t-test, der sich
+vom z-test dadurch unterscheidet, dass $\sigma$ unbekannt ist und
+durch die Stichprobenstreuung geschätzt werden muss\footnote{aufgrund
+  der Schätzung ist die Prüfgröße nun t-verteilt}, gibt es den
+t-Test für unabhängige Stichproben.
+
+Der t-Test für unabhängige Stichproben überprüft, ob zwei Stichproben
+aus Populationen mit gleichem $\mu$, also gleichem Populationsmittel
+stammen. Anders ausgedrückt dient der Test der Feststellung, ob sich
+zwei Gruppen hinsichtlich des arithmetischen Mittels eines bestimmten Merkmals
+unterscheiden. Es wird überprüft, wie wahrscheinlich die
+vorliegende Mittelwertsdifferenz beider Stichproben ist. Unter der
+Voraussetzung, dass die Verteilung aller Mittelwertsdifferenzen im
+Mittel 0 beträgt, kann durch Schätzung der Standardabweichung der
+Mittelwertsdifferenzen, auch als Standardfehler des Mittels
+bezeichnet, eine solche Aussage getroffen werden. Die Berechnung des
+Standardfehlers unterscheidet sich, je nachdem ob die Varianzen beider
+Stichproben als unterschiedlich (heterogen) oder gleich (homogen)
+angesehen werden können. Sofern Varianzheterogenität vorliegt, berechnet
+\textbf{R} den sogenannten Welch-Test, der im Vergleich zum t-Test
+eine Freiheitsgrade-Korrektur vornimmt. Zur Beantwortung der Frage
+nach Homogenität bzw. Heterogenität der Varianzen wird der
+F-Test, alternativ der Levene-Test, durchgeführt. Die Nullhypothese des F-Tests
+erwartet ein Verhältnis beider Stichprobenvarianzen von 1 (beide
+Varianzen sind identisch). Der empirische F-Wert wird nun in
+Abhängigkeit der Stichprobengröße (der Freiheitsgrade) umso größer, je
+unterschiedlicher die beiden Varianzen sind. 
+
+Im Folgenden Beispiel wird geprüft, ob geschlechtsspezifische
+Unterschiede hinsichtlich der Prokrastination bestehen, ob sich also
+weibliche von männlichen Personen in ihrem
+Aufschiebeverhaltens unterscheiden. Zunächst wird mittels des F-Tests
+geprüft, ob zwischen beiden Stichproben Varianzheterogenität
+besteht. Die Funktion hierfür lautet \texttt{var.test}.
+
+
+<<vartest>>=
+(v <- var.test(pro$total ~ pro$sex))
+@ %def 
+
+Der Output liefert den empirischen F-Wert (\Sexpr{as.numeric(v[[1]])}),
+die Zählerfreiheitsgrade ($df_{num}$=\Sexpr{as.numeric(v[[2]][1])}), die
+Nennerfreiheitsgrade ($df_{denom}$=\Sexpr{as.numeric(v[[2]][2])}) und schließlich noch
+den p-Wert (p=\Sexpr{as.numeric(v[[3]])}). Außerdem wird noch das 95\%
+Konfidenzintervall angezeigt. Anhand des p-Wertes sehen wir, dass die
+Nullhypothese, dass das wahre Verhältnis beider Varianzen 1 beträgt,
+nicht verworfen werden kann. Es handelt sich also um homogene
+Varianzen. 
+
+Mithilfe dieses Wissens lässt sich nun der t-Test für unabhängige
+Stichproben bei homogenen Varianzen rechnen. Die Funktion zu
+Berechnung des t-Tests heisst \texttt{t.test}. 
+
+
+<<ttest>>=
+(t <- t.test(pro$total ~ pro$sex,
+             alternative=c("two.sided"),
+             var.equal=TRUE,
+             conf.level=0.95))
+@ %def 
+
+Bevor ich Ihnen den Output erkläre, zunächst einige Worte zu den
+Optionen der Funktion \texttt{t.test}. Die Option \texttt{alternative}
+ist standardmäßig auf \texttt{two.sided} eingestellt. In diesem
+Beispiel haben wir ebenfalls eine zweiseitige Hypothese (es wird
+lediglich überprüft, ob sich beide Gruppen voneinander unterscheiden),
+weswegen die Angabe \texttt{alternative=c("two.sided")} hier nicht
+nötig gewesen wäre. Hätte die Alternativhypothese folgendermaßen
+gelautet: "`Männliche Personen prokrastinieren mehr als weibliche
+Personen."', so hätte die Angabe \texttt{alternative=c("greater")}
+gemacht werden müssen. Die nächste Option lautet \texttt{var.equal} und
+ist in der "`Default-Funktion"' auf \texttt{FALSE} gesetzt. Der F-Test
+ergab allerding ein nicht signifikantes Ergebnis, weswegen
+\texttt{var.equal} entsprechend auf \texttt{TRUE} gesetzt werden
+muss. Wir operieren wie üblich mit einem $\alpha$-Fehler von 5\%, das
+Konfidenzniveau lautet also 0.95.\footnote{sofern keine von der
+  Konvention ($\alpha$=0.05) abweichenden Signifikanzniveaus
+  interessieren, ist die Angabe der Option \texttt{conf.level} redundant}
+
+Das Ergebnis zeigt den empirischen t-Wert
+($t_{emp}$=\Sexpr{as.numeric(t[[1]])}), die Freiheitsgrade
+(df=\Sexpr{as.numeric(t[[2]])}), und den p-Wert
+(p=\Sexpr{as.numeric(t[[3]])}). Der p-Wert ist kleiner als 0.025,
+weswegen die Nullyhpothese verworfen werden kann. Mit einer
+Irrtumswahrscheinlichkeit von 5\% unterscheiden sich Frauen und Männer
+hinsichtlich der Prokrastination.\footnote{Aufgrund der Signifikanz
+  des zweiseitigen Tests ist automatisch auch der einseitige Test
+  signifikant; Männliche Personen schieben mehr auf als weibliche
+  Personen} Äquivalent zum Output des F-Tests 
+wird auch hier das 95\% Konfidenzintervall angezeigt. Ganz unten
+werden noch die beiden Gruppenmittelwerte präsentiert. 
+
+\subsubsection{Wilcoxon-Test}
+\label{sec:utest}
+
+Der Wilcoxon-Test überprüft genau wie der t-Test für unabhängige
+Stichproben, ob sich zwei Stichproben in der zentralen
+Tendenz\footnote{da ordinale Daten keinen Mittelwert besitzen wird
+  hier von \textit{zentraler Tendenz} gesprochen}
+voneinander unterscheiden.
+Während beim t-Test für unabhängige Stichproben die zu
+untersuchende Variable intervallskaliert und die Grundgesamtheit normalverteilt sein
+müssen, ist diese Voraussetzung für den Wilcoxon-Test nicht
+notwendig. Allerdings sollten die Daten mindestens Ordinalskalenniveau
+besitzen.  
+
+Beim Wilcoxon-Test werden die beiden Datenreihen in eine gemeinsame Rangreihe
+gebracht, dh. allen Werten werden Rangplätze vergeben und diese
+daraufhin aufsummiert, sodass für beide Stichproben Rangplatzsummen
+vorliegen. Ein fiktives Beispiel soll das Prinzip des Wilcoxon-Tests
+verdeutlichen: Wenn sich beide Rangplatzsummen stark unterscheiden,
+zb. belegt ``Gruppe 1'' die ersten vier Ränge und ``Gruppe 2'' die Plätze
+fünf bis neun, so ist eindeutig, dass sich beide Stichproben voneinander (in
+der zentralen Tendenz) unterscheiden (Muster:\textit{AAAABBBB}).
+Hingegen gäbe es keine Unterschiede, wenn ``Gruppe 1'' jeweils die
+Plätze 1, 2, 7 und 8,
+und ``Gruppe 2'' die Plätze drei bis sechs innehätte
+(Muster:\textit{AABBBBAA}). Ähnliche Rangplatzsummen, und somit keine
+Unterschiede, würden vorliegen, wenn sich beide Gruppen in den Rängen
+``abwechseln''. Beispielsweise belegt Person 1 aus ``Gruppe 1'' Rang 1,
+Person 1 aus ``Gruppe 2'' Rang 2, Person 2 aus ``Gruppe 1'' Rang 3
+usw. (Muster:\textit{ABABABAB}). 
+
+Das Vorgehen ist mit dem des z-Tests bzw. des t-Tests identisch. Es
+wird die Differenz der Rangplatzsumme einer Gruppe ($W_{A}$) zur, bei Gültigkeit
+der Nullhypothese, erwarteten Rangplatzsumme ($\mu_{A}$) gebildet und durch
+Division des Standardfehlers ($\sigma_{a}$) z-transformiert\footnote{die Prüfgröße
+  des Wilcoxon-Tests ist bei Stichprobengrößen > 10 annähernd
+  standardnormalverteilt}. Die Prüfgröße z sagt aus, wie viele
+Standardabweichungen die Rangplatzsumme von der erwarteten
+Rangplatzsumme entfernt liegt. 
+ 
+Die Formel zur Berechnung der Prüfgröße lautet:
+
+\begin{equation}
+  \label{eq:wilcox1}
+  z=\frac{W_{A}-\mu_{A}}{\sigma_{A}}
+\end{equation}
+wobei
+\begin{equation}
+  \mu_{A}=\frac{n_{A}*(n_{A}+n_{B}+1)}{2}
+\end{equation}
+und
+\begin{equation}
+  \sigma_{A}=\frac{n_{A}*n_{B}*(n_{A}+n_{B}+1)}{12}
+\end{equation}
+
+Wir wollen untersuchen, ob sich weibliche von männlichen Studenten
+hinsichtlich der Hochschulzugangsberechtigungs-Note
+unterscheiden. Noten wird zwar oftmals Intervallskalenniveau
+unterstellt, doch es ist fraglich, ob die Abstände zwischen den
+einzelnen Noten gleich groß sind (ist der Unterschied zwischen einer
+1,0 und einer 2,0 gleich dem Unterschied zwischen einer 2,0 und einer
+3,0?), was für Intervallskalennniveau jedoch vorausgesetzt wird. In
+Anbetracht dieser Tatsache bietet es sich an ein nonparametrisches
+Verfahren wie den Wilcoxon-Test) einzusetzen.
+
+Zur Berechnung in \textbf{R} wird die Funktion \texttt{wilcox.test}
+verwendet.
+
+<<utest>>=
+(u <- wilcox.test(pro$hzb ~ pro$sex))
+@ 
+
+\subsubsection{$chi^2$-Verfahren zur Analyse von Häufigkeiten}
+\label{sec:chi}
+
+Wir haben bereits Verfahren behandelt, die intervallskalierte und
+ordinalskalierte Daten analysieren und auf Signfikanz prüfen. Im
+folgenden Abschnitt gehen wir einen weiteren Schritt nach unten auf
+der "`Skalenniveau-Achse"' und beschäftigen uns mit nominalskalierten
+Daten. Wie Sie bereits wissen sind nominalskalierte Variablen im
+Vergleich zu anderen Skalen am informationsärmsten. Nominalskalierte
+Variablen geben Auskunft darüber, ob sich die Werte voneinander
+unterscheiden, oder identisch sind (= vs. $\neq$). Das Geschlecht ist
+eine klassische nominalskaliertes Merkmal, welches durch vergeben von
+entsprechenden Wertelabels (z.B. 1 = weiblich; 2 = männlich) in eine
+Variable überführt werden kann. Die Information, die sich aus dem
+Geschlecht, ungeachtet der Kombination mit anderen Variablen,
+extrahieren lässt, sind Häufigkeiten.
+
+Zur Analyse von Häufigkeiten dienen die sogenannten
+$\chi^2$"-Verfahren. $\chi^2$ -Verfahren überprüfen, ob sich eine
+beobachtete Häufigkeitsverteilung von einer Häufigkeitsverteilung, die 
+zu erwarten gewesen wäre, unterscheidet. Beispielsweise kann in einem
+einfachen Falle festgestellt werden, ob sich die Anzahl der Kinder in
+unterschiedlichen jeweils gleich großen Wohngebieten/Städten voneinander
+unterscheidet (siehe ~\fref{tab:wohnort}. Anders ausgedrückt: Ob die beiden Merkmale "`Anzahl
+Kinder"' und "`Wohnort"' voneinander unabhängig sind. Die Prüfgröße des
+$\chi^2$-Tests ist, vereinfacht dargestellt, die Abweichung von erwarteten
+und beobachteten Häufigkeiten. Je größer die Abweichung, desto
+unwahrscheinlicher ist die Unabhängigkeit beider Merkmale, und desto
+größer wird die Prüfgröße $\chi^2$. 
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|} \hline \hline
+    &  \multicolumn{2}{|c}{Anzahl Kinder}\\ \hline
+    & beobachtet & erwartet\\ \hline
+    Wohnort A & 9900 & 7500\\
+    Wohnort B & 6500 & 7500\\
+    Wohnort C & 6100 & 7500\\ \hline
+    Summe & 22500 & \\ 
+  \end{tabular}
+  \caption{Anzahl an Kindern pro Wohnort}
+  \label{tab:wohnort}
+\end{table}
+
+Mithilfe eines Beispiels aus unserem Datensatz möchte ich Ihnen das
+konkrete Vorgehen näher bringen. Wir wollen prüfen, ob die beiden
+Merkmale "`Abitur-Note"' (Name: \textit{hzb}) und "`Geschlecht"'
+(Name:\textit{sex}) voneinander unabhängig sind. Eine solche
+Fragestellung wird üblicherweise mittels eines t-Tests für unabhängige
+Stichproben (siehe ~\fref{sec:ttest}) untersucht, um festzustellen, ob
+es geschlechtsspezifische Unterschiede hinsichtlich der Abitur-Note
+gibt. Zur Veranschaulichung des $\chi^2$-Verfahrens gehen wir
+derselben Fragestellung unter Verwendung des $\chi^2$-Tests
+nach.\footnote{von einem derartigen Vorgehen in der Praxis ist
+  abzuraten, da durch Kategorisierung einer intervallskalierten
+  Variable Information verlorengeht} Wir kategorisieren zunächst die
+Variable \textit{hzb} in folgende Kategorien: 
+
+\begin{itemize}
+\item hzb < 2
+\item 2 <= hzb <=3
+\item hzb > 3
+\end{itemize}
+
+Die kategorisierten Werte finden sich in der Variable
+\textit{$hzb\_cat$}. Im nächsten Schritt wird eine zweidimensionale
+Häufigkeitstabelle mit \texttt{xtabs} erzeugt und durch
+\texttt{ftable} dargestellt. Im Prinzip kann die Tabelle auch direkt
+über \texttt{xtabs} erzeugt werden, doch \texttt{ftable} führt zu
+einer etwas eleganteren und übersichtlicheren Darstellung.
+
+<<tab>>=
+t <- xtabs(~ hzb_cat + sex, pro)
+ftable(t)
+@ 
+
+Anhand der Tabelle ist zu sehen, dass die Häufigkeiten annhähernd
+gleich verteilt sind,  jedoch mehr weibliche Studenten Noten besser
+als 2 hatten. Für die Bestimmung der Prüfgröße benötigen wir noch die
+erwarteten Häufigkeiten. Wir bestimmen dafür die Wahrscheinlichkeiten
+für jede Ausprägung der beiden Merkmale, z.B. errechnet sich die
+Wahrscheinlichkeit für \textit{weiblich} als Summe
+aller weiblichen Studenten dividiert durch die Gesamtanzahl aller
+Teilnehmer.\footnote{Personen, die entweder keine Angabe zum Geschlecht
+  oder keine Angabe zur Hochschulzugangsberechtigungs-Note gemacht
+  haben, fallen bei der Berechnung der Gesamtzahl weg} Mithilfe des
+Pakets \textbf{gmodels} und der darin enthaltenden Funktion
+\texttt{CrossTable} können Tabellen mit verschiedenen Optionen
+erstellt werden. Es werden u.a. Randsummen, Zeilen-, 
+Spalten- und Zellenwahrscheinlichkeiten
+angezeigt. Zum Installieren des Pakets dient folgender Befehl:
+
+<<install,eval=FALSE>>=
+install.packages("gmodels")
+@ 
+
+<<cross>>=
+CrossTable(t,
+           prop.c=FALSE,
+           prop.r=FALSE,
+           prop.chisq=FALSE)
+@ 
+
+Die durch \textit{CrossTable} erstellte Tabelle enthält vorerst weder
+Spalten- (\texttt{prop.c}) noch Zeilenverhältnisse
+(\texttt{prop.r}). Außerdem werden keine erwarteten
+Zellwahrscheinlichkeiten integriert (\texttt{prop.chisq}). 
+
+Zurück zu unserem Beispiel. Wir berechnen also die Wahrscheinlichkeit
+\textit{weiblich} als 58/100 = 0.58. Die Wahrscheinlichkeit eine Note
+schlechter als 3 zu haben ist 16/100 = 0.16. Die Wahrscheinlichkeit
+weiblich zu sein und eine Note schlechter als 3 zu haben (p(\textit{weiblich\&hzb>3})), wird
+errechnet unter Verwendung des Multiplikationstheorems, indem
+beide Wahrscheinlichkeiten multpliziert werden.
+
+\begin{equation}
+  p(weiblich \& hzb > 3) = p(weiblich) * p(hzb>3) = 0.58 * 0.16 = 0.0928
+\end{equation}
+
+Verglichen mit der beobachteten Häufigkeit von 0.07 bzw 7\%, beträgt
+die Differenz zur erwarteten Häufigkeit 0.0228 also 2,28\%. Um statt
+der Wahrscheinlichkeiten die tatsächlichen Häufigkeiten zu bekommen
+muss noch mit der Gesamtanzahl multipliziert werden. Aufgrund der
+Gegebenheit, dass diese in unserem Beispiel 100 ist, erübrigt sich
+eine solche Rechnung. Wir hätten statt den beobachteten sieben
+Personen neun Personen erwartet. Äquivalent werden alle anderen
+erwarteten Häufigkeiten berechnet. Alternativ lassen sich die
+erwarteten Häufigkeiten ausrechnen über die Beziehung
+
+\begin{equation}
+  f_{e(i,j)}=\frac{Zeilensumme i * Spaltensumme j}{n}
+\end{equation}
+
+Wie viele erwarteten Häufigkeiten müssen Sie in diesem Beispiel
+berechnen, damit die anderen Zellwerte eindeutig bestimmt werden
+können?  Das ist recht einfach: Sobald Sie die Wahrscheinlichkeit bzw.
+Häufigkeit für die Zelle der rechten Spalte (\textit{weiblich}) in der
+Mitte (\textit{2 <= hzb <= 3}) ermittelt haben, ergibt sich
+automatisch die letzte Zelle dieser Spalte, denn die Spaltensumme
+steht fest. Auch die Zeilensummen sind bekannt, weswegen die
+restlichen drei Werte der Spalte \textit{männlich} ebenfalls
+feststehen. Wir haben hier also zwei Freiheitsgrade (\textit{degrees
+  of freedom}). Die allgemeine Formel zur Berechnung der
+Freiheitsgrade bei einer
+Tabelle mit \textit{k} Zeilen und \textit{l} Spalten lautet
+$df=(k-1)*(l-1)$. 
+
+Die Formel zur Bestimmung der Prüfgröße $\chi^2$ ist:
+
+\begin{equation}
+  \chi^2=\sum_{i=1}^{k}\sum_{i=1}^{l} \frac{(f_{b(i,j)}-f_{e(i,j)})^2}{f_{e(i,j)}}
+\end{equation}
+
+Die Differenzen werden quadriert um zu gewährleisten, dass sich
+negative und positive Abweichungen nicht ausgleichen. Hohe
+Abweichungen sollen sich in einem hohen $\chi^2$ niederschlagen. Die
+quadrierten Differenzen werden noch an der jeweils erwarteten Häufigkeit
+relativiert, damit die Prüfgröße unabhängig von den Zellhäufigkeiten
+bleibt. Die beiden Summenzeichen (Doppelsummen) weisen darauf hin,
+dass von jeden k Zellen und l Spalten die quadrierte Differenz,
+dividiert duch die entsprechenden erwartete Häufigkeit, berechnet wird
+und schließlich alle aufsummiert werden. 
+
+Wir berechnen $\chi^2$ für unser Beispiel:
+
+\begin{equation}
+  \chi^2=\frac{(9-11.760)^2}{11.760}+\frac{(19-16.240)^2}{16.240} ...
+\end{equation}
+\begin{equation}
+  \chi^2=2.467
+\end{equation}
+
+In der $\chi^2$-Tabelle lesen wir bei df=2 und einem alpha-Niveau von
+fünf Prozent einen kritischen Wert von $\chi^2_{(2;0.95)}$=\Sexpr{qchisq(0.95,2)}
+ab. Der empirische Wert ist kleiner als der kritische Wert, wir
+behalten also die Nullhypothese \textit{"`Die beiden Merkmale sind
+  voneinander unabhängig"'} bei. Männliche Studenten unterscheiden
+sich nicht von weiblichen Studenten hinsichtlich der Abitur-Note. 
+
+Das hier beschriebene recht umfangreiche Prozedere lässt sich
+drastisch verkürzen, indem wir die Funktion \texttt{chisq.test} verwenden:
+
+<<chisq.test>>=
+chisq.test(xtabs(~hzb_cat + sex,pro))
+@ 
+
+\texttt{chisq.test} gibt den $\chi^2$-Wert, die Freiheitsgrade und den
+p-Wert aus. Das Einzige was zu beachten ist, betrifft den "`Input"'
+für \texttt{chisq.test}, welcher in tabellarischer Form
+(\texttt{xtabs}) vorliegen bzw. übergeben werden muss.
+
+\end{document}
