@@ -1,0 +1,316 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{float}
+\usepackage[german]{fancyref}
+\usepackage{hyperref}
+
+
+
+
+
+\title{Statistische Kennwerte}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+
+
+<<lattice,echo=FALSE>>=
+library(lattice)
+opts_chunk$set(fig.width=5, fig.height=4,tidy=FALSE) 
+@ %def 
+
+\subsection{Statistische Kennwerte}
+\label{sec:kennwerte}
+
+In diesem Abschnitt werden zunächst die Maße der zentralen Tendenz
+(Mittelwert, Median und Modalwert) und im Anschluss drei Maße der
+Variablität (Varianz, Standardabweichung und Interquartilbereich)
+dargestellt. Allgemein sind statistische Kennwerte dazu geeignet,
+große Datenmengen mittels weniger, möglichst aussagekräftiger, Parameter
+zu beschreiben. Dabei dienen die im folgenden beschriebenen
+Kennwerte nicht allein dem deskriptivstatistischen Zwecke der besseren
+Beschreibung der jeweils vorliegenden Daten, sondern gleichermaßen
+auch als Grundlage vieler
+inferenzstatistischer Verfahren (mehr zu Inferenzstatistik in
+~\fref{sec:}). Oftmals ist es sinnvoll, statistische Kennwerte zusätzlich
+graphisch zu veranschaulichen. Welche Diagrammtypen sich dabei zur
+Visualisierung welcher Kennwerte eignen, wird
+ausführlich in ~\fref{sec:graphics} beschrieben. 
+
+\subsubsection{Mittelwert}
+\label{sec:mean}
+
+Das wohl bekannteste Maß der zentralen Tendenz ist der Mittelwert. Der
+Mittelwert (\textit{arithmetisches Mittel}) berechnet sich, indem die
+Summe aller vorliegenden Werte,
+dividiert durch die Anzahl der Werte, gebildet wird. Die Formel sieht
+so aus:
+\begin{equation}
+  \label{eq:mean}
+  \bar{x}=\frac{\sum_{i=1}^{n} x_{i}}{n}
+\end{equation}
+
+In \textbf{R} wird der Mittelwert über die Funktion \texttt{mean}
+berechnet. 
+
+<<mean>>=
+mean(c(22,24,26,28,30))
+sum(c(22,24,26,28,30))/length(c(22,24,26,28,30))
+@ %def 
+
+Bei der Erhebung bestimmter Variablen kann es Personen geben, die
+Werte aufweisen, die sehr stark von den Werten anderer Personen
+abweichen. Es ist wichtig immer zu überprüfen, ob diese
+sogenannten Extremwerte sich im Rahmen des Möglichen befinden,
+oder aber ob es sich bei den Angaben um eigene
+Fehler bei der Datenübertragung handelt. Weiterhin ist auch nicht
+auszuschließen, dass Personen versehentlich einen zu großen bzw. zu
+kleinen Wert angegeben haben. Die Plausibilität der möglichen Ursachen
+ist ausgehend von Untersuchungsart- und design unterschiedlich. 
+
+Das arithmetische Mittel ist gegenüber solchen Extremwerten
+sensitiv. Jeder Wert der Datenreihe beeinflusst den Mittelwert. Es
+muss also zuvor überprüft werden, ob sich beispielsweise Werte
+``eingeschlichen'' haben, die sich nicht im Rahmen der Skala befinden.
+
+
+<<mean2>>=
+mean(c(4,3,2,5,2,3,9))
+@ %def 
+
+Die Daten dieses Beispiels seien Angaben einer Person
+auf sieben Items. Es wird nun die durchschnittliche Ausprägung dieser
+Person auf allen sieben Items, die sagen wir eine Skala eines größeren
+Fragebogens repräsentieren, berechnet. Der Mittelwert wäre hier, wie
+in diesem Beispiel schnell zu erkennen ist, falsch. Angenommen alle
+Items besitzen eine fünfstufige Likert-Skalierung, so ist die ``9''
+Fehl am Platze. Womöglich ist die Untersuchung online durchgeführt
+worden, und das verwendete Programm hat das Wertelabel \textit{keine
+  Angabe} mit dem Wert ``9'' versehen. Bevor also Berechnungen
+durchgeführt werden, muss die ``9'' als fehlender Wert (\textit{NA =
+  Not Available}) gekennzeichnet
+werden, sodass \textbf{R} ``weiss'', dass dieser Wert nicht in die
+Berechnung integriert werden darf. 
+
+
+<<mean3>>=
+mean(c(4,3,2,5,2,3,NA),na.rm=TRUE)
+@ %def 
+
+Sobald sich in einer Datenreihe fehlende Werte befinden, muss die
+Option \texttt{na.rm} auf \texttt{TRUE} gesetzt werden, wobei das
+\texttt{rm} für \textit{remove} steht. In der Hilfe zur Funktion
+\texttt{mean} (\texttt{?mean}) sehen Sie, dass \texttt{na.rm}
+standardmäßig auf \texttt{FALSE} gesetzt ist, weswegen also jedesmal
+explizit angegeben werden muss, dass fehlende Werte vorhanden sind.
+
+\subsubsection{Median}
+\label{sec:median}
+
+Der Median ist jener Wert, welcher die Datenreihe in zwei
+gleich große Hälften teilt. 50\% aller Werte sind also kleiner als der
+Median, während die andere Hälfte größer als der Median ist. Der
+Median wird, je nachdem ob es sich um eine gerade oder eine ungerade
+Anzahl handelt, unterschiedlich berechnet. Der Median wird durch die
+Funktion \texttt{median} repräsentiert.
+
+
+<<median1>>=
+median(c(22,24,26,28,30))
+@ %def 
+
+In diesem Beispiel sind die Werte schon in sortierter Reihenfolge
+angeordnet. Bei ungerader Anzahl lässt sich der Median mit folgender
+Formel berechnen:
+\begin{equation}
+  \label{eq:median1}
+  x_{(\frac{n+1}{2})}
+\end{equation}
+Wobei es sich bei \textit{n} um die Anzahl der
+Werte handelt. Für unser kleines Beispiel der $\frac{5+1}{2}$-te Wert,
+also ``26''.
+
+Nun modifizieren wir, durch Einfügen eines sechsten Wertes, den Vektor
+minimal und berechen erneut den Median:
+
+
+<<median2>>=
+median(c(22,24,26,28,30,32))
+@ %def 
+
+Der Median kann im Falle einer geraden Anzahl von Beobachtungen durch
+\begin{equation}
+  \label{eq:median2}
+x_{\frac{n}{2}} + x_{\frac{n}{2} + 1}  /2
+\end{equation}
+berechnet werden. 
+
+Im Gegensatz zum Mittelwert ist der Median robust gegenüber
+Extremwerten. Daher sollte in jeder empirischen Untersuchung nicht nur
+der Mittelwert, sondern auch der Median berichtet werden. Größere
+Unterschiede zwischen beiden Kennwerten lassen auf das Vorhandensein
+von Ausreißern schließen. Um die Robustheit zu verdeutlichen verändern
+wir den Beispiel-Vektor wie folgt:
+
+
+<<median3>>=
+median(c(22,24,26,28,30,45))
+@ %def 
+
+Wie Sie sehen wurde der letzte Wert, der im vorherigen Beispiel ``32''
+betrug, um 13 Punkte auf ``45'' erhöht. Der Median dieses Vektors
+bleibt davon unbetroffen\footnote{der Median bleibt ungeachtet der
+  Höhe der Veränderung stabil}. 
+
+\subsubsection{Modalwert}
+\label{sec:modal}
+
+Der Modalwert ist der Wert, der am häufigsten vorkommt. Die Berechnung
+bzw. Angabe eines Modalwertes ist nicht immer sinnvoll, da es
+Variablen gibt, bei denen jeder Wert nur einmal vorkommt. Stellen Sie sich
+eine Untersuchung vor, bei der Reaktionszeiten erhoben wurden. Die
+Wahrscheinlichkeit, dass man zwei identische Reaktionszeiten
+vorfindet, geht gegen Null. Und selbst wenn sich eine solche
+Reaktionszeit finden ließe, welchen Mehrwert hätte es, diese
+Reaktionszeit in einer Studienarbeit oder Abschlussarbeit zu erwähnen?
+Man kann getrost sagen - keinen. Ein zweiter Nachteil des Modalwertes
+ist die Tatsache, dass  womöglich mehrere Werte die gleiche
+Häufigkeit besitzen. In einem solchen Falle könnte kein Modalwert
+angegeben werden. In einigen Fällen ist der Modalwert allerdings
+angebracht und liefert zusätzlich Informationen über die Daten. Für
+den Modalwert bietet \textbf{R} keine direkte Funktion an. Sie müssen
+also, sofern Sie sich für den Modalwert interessieren, einen
+kleinen ``Umweg'' einschlagen. Das Prinzip ist das folgende: Sie
+erstellen eine Häufigkeitstabelle der Variable, und suchen den
+Maximalwert der erzeugten Häufigkeiten. Das Anzeigen von
+Häufigkeitstabellen funktioniert in R entweder über die Funktion
+\texttt{table} oder aber \texttt{xtabs}. Weil \texttt{xtabs} im
+Vergleich zu \texttt{table} auch in
+der Lage ist mehrdimensionale Häufigkeitstabellen zu erstellen, also
+in gewisser Weise leistungsfähigker ist, verwenden wir
+\texttt{xtabs}. Zur Demonstration wird im folgenden Beispiel zunächst eine
+Häufigkeitstabelle des Alters erstellt (basierend auf dem Datensatz
+\textit{pro}) und daraufhin der Maximalwert gesucht. 
+
+
+<<modal1>>=
+xtabs(~pro$age)
+max(xtabs(~pro$age))
+@ %def 
+
+Insgesamt waren also 30 Personen 20 Jahre alt. Auch erwähnenswert sind
+die 28 Personen, die 21 Jahre alt waren. \Sexpr{58/nrow(pro*100)}\%,
+also mehr als die Hälfte aller Teilnehmer
+waren im Alter zwischen 20 und 21 Jahren. 
+
+\subsubsection{Varianz}
+\label{sec:varianz}
+
+Nachdem in den vorherigen Kapiteln die Maße der zentralen Tendenz
+erläutert wurden, beschäftigen sich die
+~\fref{sec:varianz} bis ...  mit den
+Variabilitätsmaßen. Wie der Name sagt, sind dies Kennwerte, die
+versuchen die Variabilität oder auch Unterschiedlichkeit der Werte
+bestmöglich zu repräsentieren.
+
+Die Varianz ($s^2$)ist definiert als die durchschnittliche quadratische
+Abweichung vom Mittelwert\footnote{ausgehend von dieser Definition
+  müsste die Summe der quadratischen Abweichungen durch ``n''
+  dividiert werden. Es kann gezeigt werden, dass eine auf diese Weise
+  berechnete Varianz keine erwartungstreue Schätzung der
+  Populationsvarianz darstellt. Die Varianz stellt dann eine
+  erwartungstreue Schätzung dar, wenn statt ``n'' durch ``n-1''
+  dividiert wird}. Die Berechnungsformel lautet:
+
+\begin{equation}
+  \label{eq:var}
+  s^2 = \frac{\sum_{i=1}^{n} (x_{i}-\bar{x})^2}{n-1}
+\end{equation}
+
+Bevor die in R integrierte Funktion zurBerechnung der Varianz
+verwendet wird, möchte ich Ihnen zeigen, wie sich die obige Formel mit
+R direkt umsetzen lässt. Aus Übersichtlichkeitsgründen werden die
+Werte 10 bis 20 der HZB-Note gesondert in einen Vektor namens
+\textit{hzb} gespeichert. Im Anschluss wird $(x - \bar{x})$ errechnet
+und daraufhin quadriert. Nun muss im nächsten Schritt die Summe dieses
+Vektors ermittelt werden um im letzten Schritt durch \textit{n -1}
+dividiert zu werden.
+
+
+<<varianz1>>=
+(hzb <- pro$hzb[10:20])
+(result <- sum((hzb - mean(hzb))^2)/(length(hzb)- 1))
+@ %def 
+
+Zur Überprüfung des Ergebnisses verwenden wir die Funktion \textit{var}:
+
+
+<<varianz2>>=
+var(hzb)==result
+@ %def 
+
+\subsubsection{Standardabweichung}
+\label{sec:sd}
+Die Standardabweichung (oder Streuung) hat gegenüber der Varianz den
+Vorteil, dass sie leichter interpretierbar ist, da sie die Einheit der
+ursprünglichen Messwerte hat. Die Standardabweichung wird berechnet,
+indem die Wurzel der Varianz gebildet wird. Somit ist die
+Standardabweichung definiert als die durchschnittliche Abweichung vom
+Mittelwert.\footnote{auch diese Definition ist genau genommen nicht
+  korrekt, da durch ``n-1'' dividiert wird} Die Standardabweichung
+(\textit{engl: standard deviation} wird über die Funktion \texttt{sd} berechnet:
+
+
+<<sd1>>=
+sqrt(var(hzb))
+sd(hzb)
+@ %def 
+
+Wie Sie im weiteren Verlauf dieses Skript erkennen werden, ist die
+Standardabweichung einer der zentralen Kennwerte der Statistik. In
+~\fref{sec:}, in welchem die Grundlagen der
+Inferenzstatistik erläutert werden, spielt die Standardabweichung eine
+wesentliche Rolle. 
+
+\subsubsection{Interquartilbereich}
+\label{sec:iqr}
+In ~\fref{sec:median} haben Sie bereits den Median, als denjenigen
+Wert, der die Stichprobe in zwei gleich große Hälften teilt,
+kennengelernt. Gelegentlich ist es angebracht, neben Mittelwert,
+Median und Streuung einen weiteren Kennwert, den sogenannten
+Interquartilbereich, zu berechnen bzw. anzugeben. Der Interquartilbereich ist der
+Bereich, innerhalb dessen sich die Hälfte aller Werte (50\%)
+befinden. Der Interquartilbereich wird folgendermaßen berechnet:
+ZUnächst wird der Median ermittelt, im Anschluss werden alle Werte,
+die kleiner bzw. größer als der Median sind als ``eigenständiger'' Datensatz
+aufgefasst und von den so entstandenen Datensätzen wird jeweils ein
+neuer Median berechnet. Unterhalb des Medians derjenigen Werte, die kleiner als
+der Median der Gesamtstichprobe sind, befinden sich nun 25\% aller
+Werte. Dieser Wert wird auch als 1.Quartil bezeichnet. Äquivalent
+befinden sich oberhalb des Medians der zweiten ``Teilstichprobe'' (3.Quartil)
+25\% der Werte. Der Interquartilbereich ist nun die Differenz zwischen
+3. Quartil und 1.Quartil. Über die Funktion \texttt{summary} werden
+mehrere Kennwerte zugleich ausgegeben, u.a. auch die drei
+Quartile\footnote{der Median ist das 2.Quartil}. Mittels der Funktion
+\texttt{IQR} wird der Interquartilbereich (\textit{engl:
+  Inter-Quartile-Range}) ermittelt. Wir betrachten im folgenden
+Beispiel alle Angaben zur HZB-Note:
+
+
+<<iqr1>>=
+(s <- summary(pro$hzb,na.rm=TRUE))
+as.numeric(s[5]-s[2])
+IQR(pro$hzb,na.rm=TRUE)
+@ %def 
+
+
+
+\end{document}
