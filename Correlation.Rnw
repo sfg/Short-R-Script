@@ -1,0 +1,262 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{float}
+\usepackage[german]{fancyref}
+\usepackage{hyperref}
+
+
+
+
+
+\title{Korrelationstechniken}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+
+
+<<lattice,echo=FALSE>>=
+library(lattice)
+library(gmodels)
+opts_chunk$set(fig.width=5, fig.height=4,tidy=FALSE) 
+@ 
+
+\subsection{Korrelationstechniken}
+\label{sec:cor}
+
+In diesem Teil des Skripts werden verschiedene Korrelationstechniken
+vorgestellt und gezeigt, wie sich diese in \textbf{R} berechnen
+und auf Signifikanz prüfen lassen. Die Untergliederung der einzelnen
+Kapitel orientiert sich, ähnlich wie bei den grundlegenden
+inferenzstatistischen Methoden, an den jeweiligen Skalenniveaus der
+Variablen. 
+
+\subsubsection{Zusammenhang zweier intervallskalierter Variablen}
+\label{sec:pearson}
+
+Wir beginnen mit der Berechnung des Zusammenhangs zweier
+intervallskalierter Variablen, der durch die sogenannte
+\textit{Produkt-Moment-Korrelation} (oder auch
+\textit{Bravais-Pearson-Korrelation}) ausgedrückt wird. 
+
+Zum Verständnis der Korrelation als Zusammenhangsmaß zweier Variablen,
+wird im Folgenden kurz der Begriff der Kovarianz erläutert. 
+
+Die Kovarianz ist, ebenso wie die Korrelation, ein Maß zur Ermittlung
+des Zusammenhangs zweier Variablen. Wie wir später sehen werden, hat
+die Korrelation den Vorteil, dass sie invariant gegenüber 
+Maßstabsveränderungen ist (genaueres dazu im weiteren Verlauf des
+Kapitels). 
+
+Bei der Kovarianz wird der Abstand/die Abweichung der Werte der
+Variablen zum jeweiligen 
+Mittelwert betrachtet. Gehen positive Abweichungen (
+negative) der Werte der Variable \textit{x} mit positiven
+Abweichungen (negativen) der Werte der Variable \textit{y}
+einher, so deutet dies auf einen positiven Zusammenhang beider
+Variablen hin. DIe Kovarianz ist in ~\fref{eq:cov} dargestellt:
+
+\begin{equation}
+  \label{eq:cov}
+  cov(x,y)=\frac{\sum\limits_{i=1}^{n} (x_i-\bar{x})(y_i-\bar{y})}{n}
+\end{equation}
+
+Wie Sie sehen wird die Summe der Produkte der Abweichungen gebildet,
+und durch die Anzahl der Werte (\textit{n}) dividiert. Die Kovarianz
+ist also sozusagen das durchschnittliche Abweichungsprodukt. 
+
+Die Kovarianz wird positiv, wenn die Abweichungen gleichgerichtet
+sind (positiver Zusammenhang). Wenn sich  die Abweichungen in ihrem
+Vorzeichen unterscheiden, 
+wird die Kovarianz negativ (negativer Zusammenhang). Je größer die
+Kovarianz, desto stärker ist der Zusammenhang der Variablen. 
+
+Wie eingangs erwähnt ist die Kovarianz abhängig vom Maßstab der
+Variablen. Multipliziert man die Variable \textit{x} mit \textit{k} und die
+Variable \textit{y} mit \textit{l}, so verändert sich die Kovarianz um den
+Faktor \textit{k * l}. Die Größe der Kovarianz hängt somit von den
+Maßstäben der Variablen ab und gibt keinen direkten Aufschluss über die Größe
+des Zusammenhangs, sondern lediglich über die Richtung. 
+
+Zur Lösung dieses Umstands, werden die Abweichungen der Werte zum
+Mittelwert noch an der Standardabweichung standardisiert (z-transformiert),
+Die Korrelation (siehe ~\fref{eq:cor}), die mit \textit{r} bezeichnet
+wird, ist somit die Kovarianz der z-standardisierten Werte. 
+
+\begin{equation}
+  \label{eq:cor}
+  r=\frac{1}{n} \sum_{i=1}^n (\frac{x_i-\bar{x}}{s_x}\cdot
+  \frac{y_i-\bar{y}}{s_y}) 
+\end{equation}
+\begin{equation}
+  r=\frac{\frac{\sum\limits_{i=1}^{n}
+      (x_i-\bar{x})(y_i-\bar{y})}{n}}{s_x\cdot s_y}
+\end{equation}
+\begin{equation}
+  r=\frac{cov(x,y)}{s_x\cdot s_y}
+\end{equation}
+
+Im folgenden Beispiel wird die Kovarianz und die Korrelation zwischen
+der Prokrastination und der Hochschulzugangsberechtigungs-Note mit
+\textbf{R} berechnet. Außerdem zeige ich Ihnen ,wie sich eine Veränderung der
+Variablen durch Multiplikation eines Faktors verändert, die
+Korrelation jedoch den gleichen Wert beibehält.
+
+<<cor1>>=
+cov(pro$hzb,pro$total,use="na.or.complete")
+(r <- cor(pro$hzb,pro$total,use="na.or.complete"))
+cov(2*pro$hzb,3*pro$total,use="na.or.complete")
+cor(2*pro$hzb,3*pro$total,use="na.or.complete")
+@ 
+
+Wie zu erkennen ist, bleibt die Korrelation auch nach Multiplikation der
+Variablen mit einem Faktor unverändert. Die Option
+\texttt{na.or.complete} ist äquivalent zu dem bisher kennengelernten
+\texttt{na.rm=TRUE}. Im Falle der Berechnung von Kovarianzen und
+Korrelationen ist jedoch ersteres zu verwenden. 
+
+
+Können wir, ausgehend von der hier vorliegenden Korrelation von
+r=\Sexpr{cor(pro$hzb,pro$total,use="na.or.complete")}, die
+Nullhypothese, die besagt es bestehe in der Grundgesamtheit keine
+Korrelation ($H_o$:$\rho$=0), verwerfen? 
+
+Die Prüfgröße (~\fref{eq:cortest}) ist mit \textit{n-2}
+Freiheitsgraden t-verteilt: 
+
+\begin{equation}
+  \label{eq:cortest}
+  t=\frac{r\cdot\sqrt{n-2}}{\sqrt{1-r^2}}
+\end{equation}
+
+Zunächst möchte ich Ihnen zeigen, wie Sie den empirischen t-Wert ohne
+Verwendung der speziellen \textbf{R}-Funktion feststellen können. Wir
+übertragen dafür ~\fref{eq:cortest} direkt in \textbf{R}:
+
+<<cortest>>=
+attach(pro)
+n <- sum(complete.cases(hzb,total))
+(t <- r*sqrt(n-2)/(sqrt(1-r^2)))
+detach(pro)
+@ 
+
+Die Korrelation wurde zuvor der Variable \texttt{r}
+zugeordnet. Optional zu \texttt{r} hätte natürlich auch die gesamte
+Formel stehen können. Aufgrund einiger fehlender Werte (insgesamt
+\Sexpr{nrow(pro)-sum(complete.cases(pro$hzb,pro$total))} muss die
+Funktion \texttt{complete.cases} benutzt werden. Alle Variablen-Paare,
+bei denen eine oder beide Variablen \textit{missing-values}
+(\texttt{NA}) enthalten, können nicht in die Berechnung der
+Korrelation aufgenommen werden und dürfen daher auch nicht in die
+Stichprobengröße \textit{n} einfließen. \texttt{comple.cases} liefert
+als Ergebnis einen logischen Vektor, dh. alle Paare werden daraufhin
+geprüft, ob \texttt{NA}'s enthalten sind. Falls dies zutrifft wird ein
+\texttt{FALSE} zurückgemeldet. Wir interessieren uns in diesem Fall
+für die Summe aller \texttt{TRUE}, die wir durch \texttt{sum}
+erhalten. 
+
+Nun ist dieser empirische t-Wert mit einem Kritischen zu
+vergleichen. Wir prüfen wie gewohnt mit einem alpha-Fehler von fünf
+Prozent ($\alpha$=5\%). Selbstverständlich ist es nicht von Nöten, die
+den speziellen Verfahren zugehörigen Tabellen vorliegen zu haben. Die
+t-Tabelle ist in \textbf{R} integriert.\footnote{genaueres ist unter
+  \textbf{?qt} nachzulesen} Den gesuchten kritischen t-Wert, der eine
+Fläche von 95\% nach links abschneidet, finden wir mit \textbf{qt}
+unter Angabe des Konfidenzniveaus und der Freiheitsgrade.
+
+<<cortest2>>=
+t
+qt(0.95,n-2)
+dt(t,n-2)
+@ 
+
+Der empirische Wert ($t_{emp}$=\Sexpr{t}) ist kleiner als der kritische Wert
+($t_{krit}$=\Sexpr{qt(0.95,n-2)}), weswegen die Nullhypothese
+beibehalten werden muss. Der p-Wert, also die Wahrscheinlichkeit des
+Antreffens einer Korrelation von r=\Sexpr{r} unter Annahme der
+Gültigkeit der Nullhypothese beträgt \Sexpr{dt(t,n-2)} (siehe
+\textbf{dt}). 
+
+``Last but not least'' überprüfen wir unser ``manuell'' errechnetes
+Ergebnis mit dem der dafür vorgesehen Funktion \texttt{cor.test}:
+
+<<cortest3>>=
+cor.test(pro$hzb,pro$total)
+@ 
+
+\subsubsection{Fisher Z-Transformation}
+\label{sec:fisherz}
+
+Gelegentlich ist man mit der Fragestellung konfrontiert, ob sich zwei
+Korrelationen voneinander unterscheiden, oder ob eine Korrelation einer
+Grundgesamtheit mit $\rho\neq0$ entstammt. Sobald $\rho<0$ oder
+$\rho>0$ ist, handelt es sich um keine bivariate Normalverteilung
+mehr, sondern um eine rechtsteile bzw. linkssteile bivariate
+Normalverteilung, weswegen derartige Fragen nicht beantwortet werden
+können. Außerdem dient die Fisher Z-Transformation der besseren
+Vergleichbarkeit von Korrelationen, da Abstände zwischen Z-Werten
+äquidistant sind, also den gleichen Abstand besitzen. Somit ist es
+beispielsweise möglich, eine durchschnittliche Korrelation zu
+berechnen, oder festzustellen, um welchen Faktor eine Korrelation
+größer als eine andere ist. 
+
+Die Fisher Z-Transformation überführt Korrelationskoeffizienten aus
+einer Grundgesamtheit $\rho\neq0$ in annähernd
+normalverteilte Größen. 
+
+~\fref{eq:rtoz} ist die Umrechnungsformel von \textit{r} nach
+\textit{Z}, während ~\fref{eq:ztor} der Retransformation nach
+\textit{r} dient.
+
+\begin{equation}
+  \label{eq:rtoz}
+  Z=\frac{1}{2}\cdot\ln(\frac{1+r}{1-r})
+\end{equation}
+
+\begin{equation}
+  \label{eq:ztor}
+  r=\frac{e^{2Z}-1}{e^{2Z}+1}
+\end{equation}
+
+In den \textbf{R} Grundfunktionen gibt es keine Funktion, die Fisher
+Z-Werte berechnet\footnote{das Paket \texttt{psych} beinhaltet
+  beispielsweise die Funktion \texttt{fisherz2r} oder
+  \texttt{fisherz}}, programmieren wir uns zwei eigene kleine
+Funktionen, die r in Z und umgekehrt transformieren. Sie sehen an
+diesem Fall eine der großen Stärken von R - Sie sind nicht davon
+abhängig was andere bereits programmiert haben, sondern können sich
+eigene kleine Funktionen schreiben. Wie in ~\fref{sec:ztest} bereits
+kennengelernt, werden Funktionen über \texttt{function} gebildet. Die
+folgende Funktion namens \texttt{r2z} erhält als Input einen Vektor
+mit Korrelationen und gibt einen Vektor mit den passenden Z-Werten aus:
+
+<<z2r>>=
+Z <- c(0)
+r2z <- function(r) {
+ for (i in 1:length(r)) {
+   Z[i] <- 0.5*log((1+r[i])/(1-r[i]))
+   i <- i+1
+ }
+ return(Z)
+}
+@ 
+
+Jetzt wird die Funktion getestet:
+
+<<z2rtest>>=
+r2z(c(0.2,0.4,0.6,0.8))
+@ 
+
+
+
+
+
+
+\end{document}
